@@ -23,6 +23,15 @@ func (s *UserService) SignUp(
 	ctx context.Context,
 	name, email, password string,
 ) (*models.User, error) {
+
+	if err := helpers.ValidateEmail(email); err != nil {
+		return nil, err
+	}
+
+	if err := helpers.ValidatePassword(password); err != nil {
+		return nil, err
+	}
+
 	// verificar si el usuario ya existe en la base de datos
 	exists, err := s.repo.EmailExists(ctx, email)
 
