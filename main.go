@@ -38,6 +38,7 @@ func main() {
 	})
 
 	app.Post("/signup", handler.SignUpHandler)
+	app.Post("/login", handler.LoginHandler)
 
 	if err := app.RunServer(config.PORT); err != nil {
 		log.Fatal("Error al iniciar el servidor:", err)

@@ -62,7 +62,7 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*models
 	err := res.Scan(&user.ID, &user.Name, &user.Email, &user.Password)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil // No se encontró el usuario
+			return nil, fmt.Errorf("usuario no encontrado")
 		}
 		return nil, fmt.Errorf("Error al buscar el usuario por email: %w", err)
 	}

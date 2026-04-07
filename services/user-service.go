@@ -1,11 +1,16 @@
 package services
 
 import (
+	"api-basico-dev/config"
 	"api-basico-dev/helpers"
 	"api-basico-dev/models"
 	"api-basico-dev/repositories"
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
+	"github.com/golang-jwt/jwt"
 )
 
 // TODO: Crear una interfaz para el servicio de usuarios, con métodos como CreateUser, GetUserByID, UpdateUser, DeleteUser, etc.
@@ -17,6 +22,23 @@ type UserService struct {
 
 func NewUserService(repo *repositories.UserRepository) *UserService {
 	return &UserService{repo: repo}
+}
+
+func (s *UserService) generateToken(userId uint) (string, error) {
+	claims := jwt.MapClaims{
+		"user_id":    userId,
+		"expires_at": jwt.TimeFunc().Add(24 * time.Hour).Unix(), // el token expirará en 24 horas
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	tokenString, err := token.SignedString([]byte(config.AppConfig.JWT_SECRET))
+
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
 }
 
 func (s *UserService) SignUp(
@@ -61,4 +83,27 @@ func (s *UserService) SignUp(
 	}
 
 	return user, nil
+}
+
+func (s *UserService) Login(
+	ctx context.Context,
+	email, password string,
+) (string, error) {
+	user, err := s.repo.FindByEmail(ctx, strings.ToLower(email))
+
+	if err != nil {
+		return "", fmt.Errorf("credenciales inválidas")
+	}
+
+	if !helpers.CheckPasswordHash(password, user.Password) {
+		return "", fmt.Errorf("credenciales inválidas")
+	}
+
+	token, err := s.generateToken(user.ID)
+
+	if err != nil {
+		return "", fmt.Errorf("error al generar el token: %v", err)
+	}
+
+	return token, nil
 }

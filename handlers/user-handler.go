@@ -46,3 +46,31 @@ func (h *NewUserHandler) SignUpHandler(ctx *server.Context) {
 		},
 	})
 }
+
+func (h *NewUserHandler) LoginHandler(ctx *server.Context) {
+	var req models.LoginRequest
+
+	err := ctx.BindJSON(&req)
+
+	if err != nil {
+		RespondError(ctx, NewAppError("Datos de solicitud inválidos", 400))
+		return
+	}
+
+	if req.Email == "" || req.Password == "" {
+		RespondError(ctx, NewAppError("Email y contraseña son obligatorios", 400))
+		return
+	}
+
+	token, err := h.userService.Login(ctx.Ctx, req.Email, req.Password)
+
+	if err != nil {
+		RespondError(ctx, NewAppError(err.Error(), 400))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, map[string]any{
+		"message": "Login exitoso",
+		"token":   token,
+	})
+}
