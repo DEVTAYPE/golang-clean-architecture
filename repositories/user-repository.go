@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"api-basico-dev/helpers"
 	"api-basico-dev/models"
 	"context"
 	"database/sql"
@@ -20,9 +19,6 @@ func (r *UserRepository) Create(
 	ctx context.Context, // Se recibe el contexto para manejar la cancelación y los tiempos de espera
 	user *models.User, // user SE RECIBE UN MODELO (se recibe como puntero para modificarlo directamente)
 ) error {
-
-	passwordHash := helpers.HashPassword(user.Password)
-	user.Password = passwordHash
 
 	query := "INSERT INTO users (name, email, password) VALUES (?, ?, ?)"
 	res, err := r.db.ExecContext(ctx, query, user.Name, user.Email, user.Password)

@@ -3,7 +3,12 @@ package main
 import (
 	"api-basico-dev/config"
 	"api-basico-dev/database"
+	"api-basico-dev/handlers"
+	"api-basico-dev/repositories"
+	"api-basico-dev/server"
+	"api-basico-dev/services"
 	"fmt"
+	"log"
 )
 
 func main() {
@@ -16,5 +21,25 @@ func main() {
 		return
 	}
 
-	fmt.Println("Hello, World!")
+	// iniciar repos
+	userRepo := repositories.NewUserRepository(database.DB)
+
+	// iniciar servicios
+	userService := services.NewUserService(userRepo)
+
+	// inicializar el handler
+	handler := handlers.NewNewUserHandler(userService)
+
+	// iniciar el servidor
+	app := server.NewApp()
+	app.Get("/health", func(ctx *server.Context) {
+		ctx.RWriter.Header().Set("Content-Type", "application/json")
+		ctx.Send(`{"status": "ok"}`)
+	})
+
+	app.Post("/signup", handler.SignUpHandler)
+
+	if err := app.RunServer(config.PORT); err != nil {
+		log.Fatal("Error al iniciar el servidor:", err)
+	}
 }
