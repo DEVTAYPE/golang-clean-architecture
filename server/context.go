@@ -44,6 +44,10 @@ func (c *Context) SetUserUID(uid uint) {
 	c.UserUID = uid
 }
 
+func (c *Context) GetUserUID() uint {
+	return c.UserUID
+}
+
 func (c *Context) BindJSON(dest any) error {
 	err := json.NewDecoder(c.Request.Body).Decode(dest)
 

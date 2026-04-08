@@ -4,6 +4,7 @@ import (
 	"api-basico-dev/config"
 	"api-basico-dev/database"
 	"api-basico-dev/handlers"
+	"api-basico-dev/middleware"
 	"api-basico-dev/repositories"
 	"api-basico-dev/server"
 	"api-basico-dev/services"
@@ -39,6 +40,7 @@ func main() {
 
 	app.Post("/signup", handler.SignUpHandler)
 	app.Post("/login", handler.LoginHandler)
+	app.Get("/me", middleware.AuthMiddleware(handler.MeHandler))
 
 	if err := app.RunServer(config.PORT); err != nil {
 		log.Fatal("Error al iniciar el servidor:", err)

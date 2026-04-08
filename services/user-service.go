@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // TODO: Crear una interfaz para el servicio de usuarios, con métodos como CreateUser, GetUserByID, UpdateUser, DeleteUser, etc.
@@ -27,7 +27,7 @@ func NewUserService(repo *repositories.UserRepository) *UserService {
 func (s *UserService) generateToken(userId uint) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id":    userId,
-		"expires_at": jwt.TimeFunc().Add(24 * time.Hour).Unix(), // el token expirará en 24 horas
+		"expires_at": jwt.NewNumericDate(time.Now().Add(24 * time.Hour)), // el token expirará en 24 horas
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -39,6 +39,10 @@ func (s *UserService) generateToken(userId uint) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+func (s *UserService) GetUserByID(ctx context.Context, userID uint) (*models.User, error) {
+	return s.repo.FindByID(ctx, userID)
 }
 
 func (s *UserService) SignUp(

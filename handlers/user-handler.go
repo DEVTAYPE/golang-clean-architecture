@@ -74,3 +74,27 @@ func (h *NewUserHandler) LoginHandler(ctx *server.Context) {
 		"token":   token,
 	})
 }
+
+func (h *NewUserHandler) MeHandler(ctx *server.Context) {
+	userID := ctx.GetUserUID()
+	if userID == 0 {
+		RespondError(ctx, NewAppError("Usuario no autenticado", http.StatusUnauthorized))
+		return
+	}
+
+	user, err := h.userService.GetUserByID(ctx.Ctx, userID)
+
+	if err != nil {
+		RespondError(ctx, NewAppError("Usuario no encontrado", http.StatusNotFound))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, map[string]interface{}{
+		"message": "Información del usuario",
+		"user": map[string]interface{}{
+			"id":    user.ID,
+			"name":  user.Name,
+			"email": user.Email,
+		},
+	})
+}
