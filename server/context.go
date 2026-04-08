@@ -6,11 +6,16 @@ import (
 	"net/http"
 )
 
+// Agregar para obtener el id de los params /post/:id
 type Context struct {
 	RWriter http.ResponseWriter // para escribir la respuesta al cliente
 	Request *http.Request       // para acceder a la información de la solicitud del cliente
 	Ctx     context.Context     // para manejar el contexto de la solicitud, como cancelación o tiempo de espera
 	UserUID uint                // para almacenar el UID del usuario autenticado, si es necesario
+}
+
+func (c *Context) GetParam(key string) string {
+	return c.Request.PathValue(key)
 }
 
 // Metodo para enviar una respuesta de texto al cliente

@@ -24,12 +24,15 @@ func main() {
 
 	// iniciar repos
 	userRepo := repositories.NewUserRepository(database.DB)
+	postRepo := repositories.NewPostRepository(database.DB)
 
 	// iniciar servicios
 	userService := services.NewUserService(userRepo)
+	postService := services.NewPostService(postRepo)
 
 	// inicializar el handler
-	handler := handlers.NewNewUserHandler(userService)
+	userHandler := handlers.NewNewUserHandler(userService)
+	postHandler := handlers.NewPostHandler(postService)
 
 	// iniciar el servidor
 	app := server.NewApp()
@@ -38,9 +41,17 @@ func main() {
 		ctx.Send(`{"status": "ok"}`)
 	})
 
-	app.Post("/signup", handler.SignUpHandler)
-	app.Post("/login", handler.LoginHandler)
-	app.Get("/me", middleware.AuthMiddleware(handler.MeHandler))
+	app.Post("/signup", userHandler.SignUpHandler)
+	app.Post("/login", userHandler.LoginHandler)
+	app.Get("/me", middleware.AuthMiddleware(userHandler.MeHandler))
+
+	// posts
+	app.Post("/posts", middleware.AuthMiddleware(postHandler.CreatePostHandler))
+	app.Get("/posts", postHandler.GetAllPostsHandler)
+	app.Get("/posts/{id}", postHandler.GetPostByIDHandler)
+	app.Get("/users/posts", middleware.AuthMiddleware(postHandler.GetPostsByUserIDHandler))
+	app.Put("/posts/{id}", middleware.AuthMiddleware(postHandler.UpdatePostHandler))
+	app.Delete("/posts/{id}", middleware.AuthMiddleware(postHandler.DeletePostHandler))
 
 	if err := app.RunServer(config.PORT); err != nil {
 		log.Fatal("Error al iniciar el servidor:", err)

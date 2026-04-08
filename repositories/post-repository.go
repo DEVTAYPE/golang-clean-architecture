@@ -12,7 +12,7 @@ type PostRepository struct {
 	db *sql.DB // Conexión a la base de datos
 }
 
-func New(db *sql.DB) *PostRepository {
+func NewPostRepository(db *sql.DB) *PostRepository {
 	return &PostRepository{db: db}
 }
 
@@ -54,6 +54,33 @@ func (r *PostRepository) FindByID(ctx context.Context, id uint) (*models.Post, e
 	return &post, nil
 }
 
+func (r *PostRepository) GetAll(ctx context.Context) ([]*models.Post, error) {
+	query := "SELECT id, title, content, user_id, created_at, updated_at FROM posts"
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("Error al buscar los posts: %w", err)
+	}
+
+	defer rows.Close() // Se asegura de cerrar las filas después de usarlas para liberar recursos
+
+	var posts []*models.Post
+	for rows.Next() {
+		var post models.Post
+		err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.UserId, &post.CreatedAt, &post.UpdatedAt)
+		if err != nil {
+			return nil, fmt.Errorf("Error al escanear el post: %w", err)
+		}
+		posts = append(posts, &post)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("Error al iterar sobre los posts: %w", err)
+	}
+
+	return posts, nil
+}
+
 func (r *PostRepository) FindByUserID(ctx context.Context, userId uint) ([]*models.Post, error) {
 
 	query := "SELECT id, title, content, user_id, created_at, updated_at FROM posts WHERE user_id = ?"
@@ -81,4 +108,26 @@ func (r *PostRepository) FindByUserID(ctx context.Context, userId uint) ([]*mode
 	}
 
 	return posts, nil
+}
+
+func (r *PostRepository) Update(ctx context.Context, post *models.Post) error {
+	query := "UPDATE posts SET title = ?, content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+	_, err := r.db.ExecContext(ctx, query, post.Title, post.Content, post.ID)
+
+	if err != nil {
+		return fmt.Errorf("Error al actualizar el post: %w", err)
+	}
+
+	return nil
+}
+
+func (r *PostRepository) Delete(ctx context.Context, postId uint) error {
+	query := "DELETE FROM posts WHERE id = ?"
+	_, err := r.db.ExecContext(ctx, query, postId)
+
+	if err != nil {
+		return fmt.Errorf("Error al eliminar el post: %w", err)
+	}
+
+	return nil
 }

@@ -8,3 +8,13 @@ type Post struct {
 	CreatedAt string `json:"created_at"` // Fecha de creación del post
 	UpdatedAt string `json:"updated_at"` // Fecha de última actualización del post
 }
+
+type CreatePostRequest struct {
+	Title   string `json:"title"`   // Título del post
+	Content string `json:"content"` // Contenido del post
+}
+
+type UpdatePostRequest struct {
+	Title   string `json:"title"`   // Título del post
+	Content string `json:"content"` // Contenido del post
+}
